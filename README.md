@@ -1,14 +1,20 @@
 # Disaster Response Pipeline Project
+This project processes raw text format data and classifies into 36 categories. It also includes a web app that allows users to input messages and get categories. 
 
-### Instructions:
-1. Run the following commands in the project's root directory to set up your database and model.
+### data
+Two input csv files store messages and categories data;
+'process_data.py' loads and transforms data and stores in a database;
+Run the following command in the project's root directory:
+`python data/process_data.py data/disaster_messages.csv data/
 
-    - To run ETL pipeline that cleans data and stores in database
-        `python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db`
-    - To run ML pipeline that trains classifier and saves
-        `python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl`
+### models
+'train_classifier.py' pulls data from database and applies Random Forest Classifier on the training data;
+The model is saved in a pickle file; 
+Run the following command in the project's root directory:
+`python models/train_classifier.py data/DisasterResponse.db models/classifier.pkl`
 
-2. Run the following command in the app's directory to run your web app.
-    `python run.py`
 
-3. Go to http://0.0.0.0:3001/
+### app
+Run the Flask web app in the app's directory 'python run.py'/; 
+Check the web app from http://0.0.0.0:3001/
+
