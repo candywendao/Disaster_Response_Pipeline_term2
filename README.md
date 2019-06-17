@@ -1,11 +1,11 @@
 # Disaster Response Pipeline Project
-This project processes raw text format data and classifies into 36 categories. It also includes a web app that allows users to input messages and get categories. 
+This project processes raw messages data and classifies into 36 categories. It includes a web app that allows users to input messages and get categories. 
 
 ### data
 Two input csv files store messages and categories data;
 'process_data.py' loads and transforms data and stores in a database;
 Run the following command in the project's root directory:
-`python data/process_data.py data/disaster_messages.csv data/
+`python data/process_data.py data/disaster_messages.csv data/disaster_categories.csv data/DisasterResponse.db`
 
 ### models
 'train_classifier.py' pulls data from database and applies Random Forest Classifier on the training data;
@@ -17,4 +17,5 @@ Run the following command in the project's root directory:
 ### app
 Run the Flask web app in the app's directory 'python run.py'/; 
 Check the web app from http://0.0.0.0:3001/
+
 
