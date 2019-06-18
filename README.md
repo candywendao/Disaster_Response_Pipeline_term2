@@ -18,4 +18,4 @@ Run the following command in the project's root directory:
 Run the Flask web app in the app's directory 'python run.py'/; 
 Check the web app from http://0.0.0.0:3001/
 
-
+Below is a screen-shot of the web app. 
