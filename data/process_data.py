@@ -4,9 +4,14 @@ import sqlite3
 
 def load_data(messages_filepath, categories_filepath):
     '''
-    load two csv format files and merge on 'id'.
-    - messages columns: id, messages, original, genre;
-    - categories columns: id, categores.
+    This function loads two csv files, merge on column 'id' and returns the merged dataframe.
+
+    Args:
+    messages_filepath, string, csv file messages filepath
+    categories_filepath, string, csv categories filepath
+
+    Returns:
+    the merged dataframe
 
     '''
     messages = pd.read_csv(messages_filepath)
@@ -18,23 +23,31 @@ def load_data(messages_filepath, categories_filepath):
 
 def clean_data(df):
     
-    '''split categories in to 36 columns and drop nan and duplicate values'''
+    '''
+    This function splits the column 'categories' of the input dataframe into 36 categories.
+
+    Then returns the dataframe after dropping nan and duplicate values.
+    
+    '''
     categories = df.categories.str.split(';', expand = True)
+    # get the category names from the first row
     col_names = categories.iloc[0,:].apply(lambda x: x[:-2])
     categories.columns = col_names
+    # get the categoeis values
     for col in categories:
+        # extract the values and cast to int
         categories[col] = categories[col].astype(str).str.split('-').str[1]
         categories[col] = categories[col].astype(int)
-    
+    # delete the original 'categories' column
     df = df.drop('categories', axis = 1)
     df = pd.concat([df, categories], axis = 1)
-    df = df.dropna().drop_duplicates()
+    df = df.dropna().drop_duplicates(keep = 'first')
+    assert len(df[df.duplicated()]) == 0
     return df
 
 
 def save_data(df, database_filename):
-    #engine = create_engine('sqlite:///database_filename')
-    #df.to_sql('df_table', engine, index = False, if_exists = 'replace')                       
+    # write dataframe in a SQL-lite databse in the provided path.
     conn = sqlite3.connect(database_filename)
     df.to_sql('messages', con = conn, if_exists = 'replace')
 

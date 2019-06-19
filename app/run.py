@@ -1,9 +1,15 @@
 import json
 import plotly
+import re
 import pandas as pd
 
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
+from collections import Counter
+
+import nltk
+nltk.download(['punkt', 'wordnet', 'stopwords'])
+from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.corpus import stopwords
+from nltk.stem.wordnet import WordNetLemmatizer
 
 from flask import Flask
 from flask import render_template, request, jsonify
@@ -16,19 +22,15 @@ import sqlite3
 app = Flask(__name__)
 
 def tokenize(text):
+    text = re.sub(r'[^a-zA-Z0-9]', ' ', text.lower())
     tokens = word_tokenize(text)
-    lemmatizer = WordNetLemmatizer()
+    stopwords_ = stopwords.words("english")
+    tokens = [word for word in tokens if word not in stopwords_]
+    tokens = [WordNetLemmatizer().lemmatize(word, pos='v') for word in tokens]
+    return tokens
 
-    clean_tokens = []
-    for tok in tokens:
-        clean_tok = lemmatizer.lemmatize(tok).lower().strip()
-        clean_tokens.append(clean_tok)
-
-    return clean_tokens
 
 # load data
-#engine = create_engine('sqlite:///../data/DisasterResponse.db')
-#df = pd.read_sql_table('messages', engine)
 database_filepath = '../data/DisasterResponse.db'
 conn = sqlite3.connect(database_filepath)
 df = pd.read_sql('SELECT * FROM messages', conn, index_col=None)
@@ -44,12 +46,24 @@ model = joblib.load("../models/classifier.pkl")
 def index():
     
     # extract data needed for visuals
-    # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
-    
+
+    df_cat = df[df.columns[4:]]
+    cat_proportion = df_cat[df_cat != 0].sum()/len(df_cat)
+    cat_proportion = cat_proportion.sort_values(ascending = False)
+    cat_x = list(cat_proportion.index)
+
+    words_list = []
+    for text in df['message'].values:
+        words_list.extend(tokenize(text))
+    words_cnt = Counter(words_list)
+    lst = words_cnt.most_common(10)
+    common_words = pd.DataFrame(lst, columns = ['Word', 'Count'])
+    words = common_words['Word'].values
+    cnts = common_words['Count'].values
+        
     # create visuals
-    # TODO: Below is an example - modify to create your own visuals
     graphs = [
         {
             'data': [
@@ -68,8 +82,50 @@ def index():
                     'title': "Genre"
                 }
             }
+        },
+        {
+            'data': [
+                Bar(
+                    x=cat_x,
+                    y=cat_proportion
+                )
+            ],
+
+            'layout': {
+                'title': 'Proportion of Messages <br> by Category',
+                'yaxis': {
+                    'title': "Proportion"
+                    
+                },
+                'xaxis': {
+                    'title': "Category"
+                }
+            }
+        },
+        {
+            'data': [
+                Bar(
+                    x=words,
+                    y=cnts
+                )
+            ],
+
+            'layout': {
+                'title': 'Proportion of Messages <br> by Category',
+                'yaxis': {
+                    'title': "Counts"
+                    
+                },
+                'xaxis': {
+                    'title': "Most Common Words"
+                }
+            }
         }
     ]
+   
+    
+
+   
     
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
@@ -89,7 +145,7 @@ def go():
     classification_labels = model.predict([query])[0]
     classification_results = dict(zip(df.columns[4:], classification_labels))
 
-    # This will render the go.html Please see that file. 
+    # This will render the go.html. 
     return render_template(
         'go.html',
         query=query,
