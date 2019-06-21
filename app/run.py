@@ -111,7 +111,7 @@ def index():
             ],
 
             'layout': {
-                'title': 'Proportion of Messages <br> by Category',
+                'title': 'Most Common Words',
                 'yaxis': {
                     'title': "Counts"
                     
